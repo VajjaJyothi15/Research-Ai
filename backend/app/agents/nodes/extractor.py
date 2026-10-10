@@ -18,7 +18,19 @@ def extract_json_from_text(text: str) -> dict:
         match = re.search(r"```\s*(.*?)\s*```", clean_text, re.DOTALL)
         if match:
             clean_text = match.group(1).strip()
-    return json.loads(clean_text)
+    else:
+        match = re.search(r"(\{.*\})", clean_text, re.DOTALL)
+        if match:
+            clean_text = match.group(1).strip()
+
+    try:
+        return json.loads(clean_text)
+    except Exception:
+        cleaned = re.sub(r",\s*([\]}])", r"\1", clean_text)
+        try:
+            return json.loads(cleaned)
+        except Exception:
+            return {}
 
 
 async def extract_claims_for_source(provider, source: dict, question: str, system_prompt: str):
