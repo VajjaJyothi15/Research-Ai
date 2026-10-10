@@ -53,6 +53,8 @@ class GroqProvider(BaseLLMProvider):
         last_error = None
         for current_model in models_to_try:
             for attempt in range(max_retries):
+                # On subsequent retries if json_mode failed, disable strict response_format
+                use_strict_json = json_mode and (attempt == 0)
                 try:
                     if self._client:
                         # Use official Groq Async client
@@ -62,9 +64,7 @@ class GroqProvider(BaseLLMProvider):
                             "messages": formatted_messages,
                             "temperature": temperature,
                         }
-                        if "qwen" in current_model.lower():
-                            kwargs["max_tokens"] = 350 if json_mode else 850
-                        if json_mode:
+                        if use_strict_json:
                             kwargs["response_format"] = {"type": "json_object"}
                         if tools:
                             kwargs["tools"] = tools
@@ -96,9 +96,7 @@ class GroqProvider(BaseLLMProvider):
                             "messages": formatted_messages,
                             "temperature": temperature,
                         }
-                        if "qwen" in current_model.lower():
-                            payload["max_tokens"] = 350 if json_mode else 850
-                        if json_mode:
+                        if use_strict_json:
                             payload["response_format"] = {"type": "json_object"}
                         if tools:
                             payload["tools"] = tools
@@ -113,6 +111,10 @@ class GroqProvider(BaseLLMProvider):
                                     await asyncio.sleep(backoff * (attempt + 1))
                                     continue
                                 break
+                            if res.status_code == 400 and ("json_validate_failed" in res.text or "Failed to validate JSON" in res.text):
+                                logger.warning(f"Groq strict JSON validation failed on {current_model}. Retrying without strict response_format...")
+                                if attempt < max_retries - 1:
+                                    continue
                             if res.status_code != 200:
                                 logger.warning(f"Groq API HTTP {res.status_code}: {res.text}")
                                 break
@@ -139,6 +141,10 @@ class GroqProvider(BaseLLMProvider):
                     if "TPD" in err_str or "tokens per day" in err_str or "daily" in err_str.lower():
                         logger.warning(f"Groq model {current_model} reached daily token limit. Switching to alternative model...")
                         break  # Try next model in list immediately
+                    if "json_validate_failed" in err_str or "Failed to validate JSON" in err_str:
+                        logger.warning(f"Groq strict JSON validation failed on {current_model}. Retrying without strict response_format...")
+                        if attempt < max_retries - 1:
+                            continue
                     if "rate_limit" in err_str.lower() or "429" in err_str:
                         sleep_time = 1.5 * (attempt + 1)
                         match_m = re.search(r"try again in (\d+)m([\d\.]+)s", err_str)
