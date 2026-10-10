@@ -21,10 +21,10 @@ class Settings(BaseSettings):
     # AI / LLM Config
     LLM_PROVIDER: str = "groq"  # "groq", "gemini", "openai"
     GROQ_API_KEY: Optional[str] = None
-    GROQ_MODEL: str = "openai/gpt-oss-120b"
+    GROQ_MODEL: str = "openai/gpt-oss-20b"
     GEMINI_API_KEY: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "openai/gpt-oss-120b"
+    LLM_MODEL: str = "openai/gpt-oss-20b"
 
     # Search Provider
     SEARCH_PROVIDER: str = "ddg"  # "tavily", "ddg"

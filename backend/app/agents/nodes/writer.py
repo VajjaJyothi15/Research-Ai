@@ -160,9 +160,13 @@ async def report_writer_node(state: AgentState) -> AgentState:
         if "## Sources" not in content and "## References" not in content and state.sources:
             sources_section = "\n\n## Sources\n"
             for i, src in enumerate(state.sources, 1):
-                author_str = f" - {src.authors}" if src.authors else ""
-                date_str = f" ({src.published_date})" if src.published_date else ""
-                sources_section += f"- [{i}] [{src.title}]({src.url}){author_str}{date_str}\n"
+                title = (src.get("title") if isinstance(src, dict) else getattr(src, "title", None)) or "Source"
+                url = (src.get("url") if isinstance(src, dict) else getattr(src, "url", None)) or "#"
+                authors = (src.get("authors") or src.get("author")) if isinstance(src, dict) else getattr(src, "authors", None)
+                pub_date = (src.get("published_date") or src.get("publication_date")) if isinstance(src, dict) else getattr(src, "published_date", None)
+                author_str = f" - {authors}" if authors else ""
+                date_str = f" ({pub_date})" if pub_date else ""
+                sources_section += f"- [{i}] [{title}]({url}){author_str}{date_str}\n"
             content += sources_section
 
         state.markdown_report = content
