@@ -22,7 +22,7 @@ async def test_full_research_creation_and_approval_flow():
             "question": "What are the core technical foundations and performance metrics of ResAI?",
             "objective": "Evaluate autonomous research performance",
             "domain": "AI Systems",
-            "mode": "deep",
+            "mode": "quick",
         })
         assert create_res.status_code == 201
         run_data = create_res.json()

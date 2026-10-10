@@ -427,10 +427,12 @@ export const ResearchWorkspace: React.FC = () => {
           status={run?.status || 'SEARCHING'}
           events={events}
           liveLog={liveLog}
-          errorMessage={run?.status === 'FAILED' ? 'Pipeline error during multi-stage research execution.' : null}
+          errorMessage={run?.status === 'FAILED' ? (run?.policy_json?.error_message || 'Research pipeline encountered an error.') : null}
           onViewReport={() => navigate(`/report/${id}`)}
           onCancel={() => cancelMutation.mutate()}
+          onRetry={() => approveMutation.mutate()}
           isCancelling={cancelMutation.isPending}
+          isRetrying={approveMutation.isPending}
         />
       )}
 

@@ -31,7 +31,9 @@ interface LiveProgressTimelineProps {
   errorMessage?: string | null;
   onViewReport?: () => void;
   onCancel?: () => void;
+  onRetry?: () => void;
   isCancelling?: boolean;
+  isRetrying?: boolean;
 }
 
 const STAGES_METADATA = [
@@ -88,7 +90,9 @@ export const LiveProgressTimeline: React.FC<LiveProgressTimelineProps> = ({
   errorMessage,
   onViewReport,
   onCancel,
+  onRetry,
   isCancelling,
+  isRetrying,
 }) => {
   const isCompleted = status === 'COMPLETED' || status === 'PARTIAL';
   const isFailed = status === 'FAILED';
@@ -156,6 +160,17 @@ export const LiveProgressTimeline: React.FC<LiveProgressTimelineProps> = ({
             </button>
           )}
 
+          {isFailed && onRetry && (
+            <button
+              onClick={onRetry}
+              disabled={isRetrying}
+              className="px-4 py-2 bg-[#635BFF] hover:bg-[#4F46E5] text-white rounded-lg text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition-colors disabled:opacity-50"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>{isRetrying ? 'Retrying...' : 'Retry Research'}</span>
+            </button>
+          )}
+
           {!isCompleted && !isFailed && !isCancelled && onCancel && (
             <button
               onClick={onCancel}
@@ -187,12 +202,23 @@ export const LiveProgressTimeline: React.FC<LiveProgressTimelineProps> = ({
 
       {/* Error Banner */}
       {isFailed && (
-        <div className="p-4 bg-[#FEE2E2] border border-[#FECACA] rounded-lg text-[#991B1B] text-xs flex items-start space-x-2.5">
-          <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
-          <div className="space-y-0.5">
-            <span className="font-semibold">Research execution encountered an error:</span>
-            <p>{errorMessage || 'An unexpected server error occurred during pipeline execution.'}</p>
+        <div className="p-4 bg-[#FEE2E2] border border-[#FECACA] rounded-lg text-[#991B1B] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start space-x-2.5">
+            <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-semibold">Research execution encountered an error:</span>
+              <p>{errorMessage || 'An unexpected server error occurred during pipeline execution.'}</p>
+            </div>
           </div>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              disabled={isRetrying}
+              className="px-3 py-1.5 bg-[#991B1B] hover:bg-[#7F1D1D] text-white rounded-md text-xs font-medium shrink-0 self-start sm:self-auto transition-colors disabled:opacity-50"
+            >
+              {isRetrying ? 'Retrying...' : 'Retry Now'}
+            </button>
+          )}
         </div>
       )}
 

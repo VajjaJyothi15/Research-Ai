@@ -233,7 +233,7 @@ async def stream_research_events(
             # 2. If already in terminal state, we are done
             if run.status in ["COMPLETED", "PARTIAL", "FAILED", "CANCELLED"]:
                 return
-            if history and history[-1].get("status") in ["completed", "failed", "cancelled"]:
+            if history and any(e.get("status") in ["completed", "failed", "cancelled"] or e.get("stage") == "COMPLETED" for e in history):
                 return
 
             # 3. Stream live events from the subscriber queue while running
