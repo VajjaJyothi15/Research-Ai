@@ -156,6 +156,15 @@ async def report_writer_node(state: AgentState) -> AgentState:
         content = response.content
         content = re.sub(r'(?m)^##\s*\d+[\.\)]\s*', '## ', content)
 
+        # Guarantee ## Sources section with real clickable links if omitted or named differently
+        if "## Sources" not in content and "## References" not in content and state.sources:
+            sources_section = "\n\n## Sources\n"
+            for i, src in enumerate(state.sources, 1):
+                author_str = f" - {src.authors}" if src.authors else ""
+                date_str = f" ({src.published_date})" if src.published_date else ""
+                sources_section += f"- [{i}] [{src.title}]({src.url}){author_str}{date_str}\n"
+            content += sources_section
+
         state.markdown_report = content
         state.logs.append(f"Report Writer Agent generated {norm_mode} report with Groq ({response.model_name}).")
         return state
